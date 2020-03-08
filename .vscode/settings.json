@@ -1,0 +1,21 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.snippetSuggestions": "inline",
+  "[handlebars]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
+  },
+  "files.autoSave": "onFocusChange",
+  "gitlens.codeLens.recentChange.enabled": false,
+  "gitlens.codeLens.authors.enabled": false,
+  "typescript.validate.enable": false,
+  "terminal.integrated.scrollback": 10000,
+  "search.exclude": {
+    "**/.cache": true,
+    "**/babel-loader": true,
+    "**/build": true
+  },
+  "search.followSymlinks": false
+}

@@ -1,0 +1,14 @@
+
+  .footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .heart {
+    color: #f45858;
+    font-size: 1.3em;
+  }
+  .credits {
+    font-size: 0.8em;
+  }
