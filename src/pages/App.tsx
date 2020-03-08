@@ -23,6 +23,8 @@ import {
 } from "@material-ui/core"
 
 const centerCropSize = 224
+//const dataDir = "/data_dev"
+const dataDir = "/data"
 function isFake(fileName: string) {
   return fileName.indexOf("1_fake") !== -1
 }
@@ -31,7 +33,7 @@ function isReal(fileName: string) {
 }
 
 async function fetchImgData(fileName: string): Promise<{ img: Jimp; fileName: string }> {
-  const img = await Jimp.read("/data/CNN_synth_testset/" + fileName)
+  const img = await Jimp.read(dataDir + "/CNN_synth_testset/" + fileName)
   return { img, fileName }
   /*
   const ow = image.getWidth()
@@ -104,7 +106,7 @@ const randomModeOptions: { value: "all" | "fake-only" | "real-only"; label: stri
 
 function App() {
   const filesState = useAsync<{ models: string[]; files: string[] }>(async () => {
-    const response = await fetch("/data/file_list.txt")
+    const response = await fetch(dataDir + "/file_list.txt")
     if (!response.ok) {
       throw new Error("Could not fetch image list")
     }
@@ -143,7 +145,7 @@ function App() {
   async function triggerDeepFakeAnalysis(newImgData: { img: Jimp; fileName: string }) {
     if (modelLoadStatus === "not-loaded") {
       setModelLoadStatus("loading")
-      await myOnnxSession.loadModel("/data/model/cnndetection.onnx")
+      await myOnnxSession.loadModel(dataDir + "/model/cnndetection.onnx")
       // trigger dummy analysis to load the model in memory
       const inputs = [
         new Tensor(

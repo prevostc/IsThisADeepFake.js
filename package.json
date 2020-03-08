@@ -39,7 +39,10 @@
     "lint:prettier:fix": "prettier $(./bin/select_all_ts_files.sh) --write",
     "lint:tslint": "tslint -c tslint.json --project tsconfig.json $(./bin/select_all_ts_files.sh)",
     "lint:tslint:fix": "tslint -c tslint.json --project tsconfig.json $(./bin/select_all_ts_files.sh) --fix",
-    "test:precommit": "npm run lint:fix && npm run test:typescript"
+    "test:precommit": "npm run lint:fix && npm run test:typescript",
+    "deploy:data": "aws s3 cp --region eu-west-3 --recursive --cache-control 'immutable' --acl 'public-read' --content-encoding 'gzip' './public/data' 's3://isthisadeepfake.com/data'",
+    "deploy:code": "s3-deploy './build/**' --cwd './build/' --region eu-west-3 --bucket isthisadeepfake.com --gzip --etag",
+    "deploy": "npm run build && npm run deploy:code"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -58,6 +61,7 @@
   },
   "devDependencies": {
     "prettier": "^1.19.1",
+    "s3-deploy": "^1.4.0",
     "tslint": "^6.0.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-etc": "^1.10.1"
