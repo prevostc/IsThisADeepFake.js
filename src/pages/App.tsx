@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import css from "./App.module.css"
 import { useAsync } from "react-use"
 import { Footer } from "../component/Footer"
-import { Tensor } from "onnxjs"
 import Loader from "../component/Loader"
 import AppProviders from "../component/AppProviders"
 import AppSnackbar from "../component/AppSnackbar"
@@ -10,12 +9,14 @@ import * as lodash from "lodash"
 import { ImgCanvas } from "../component/ImgCanvas"
 import Jimp from "jimp"
 import { Button, Typography, Input } from "@material-ui/core"
-import { dataDir, myOnnxSession, centerCropSize } from "../lib/options"
+import { dataDir, modelFileSize } from "../lib/options"
 import { OptionsPanel, RandomModes, ImageModel } from "../component/OptionsPanel"
-import { isItADeepFake, isFake, isReal, fetchImgData } from "../lib/utils"
+import { isThisADeepFake, isFake, isReal, fetchImgData, downloadAndWarmupOnnxModel } from "../lib/utils"
 import { Jumbo } from "../component/Jumbo"
 import { Credits } from "../component/Credits"
 import { HowItWorks } from "../component/HowItWorks"
+import { isMobileDevice } from "../lib/mobile"
+import AppModal from "../component/AppModal"
 
 function App() {
   const filesState = useAsync<{ files: string[] }>(async () => {
@@ -31,7 +32,9 @@ function App() {
   const [selectedRandomMode, setSelectedRandomMode] = useState<RandomModes>("all")
   const [img, setImg] = useState<{ img: Jimp; fileName: string } | null>(null)
   const [fakeProb, setFakeProb] = useState<number | null>(null)
-  const [modelLoadStatus, setModelLoadStatus] = useState<"not-loaded" | "loading" | "loaded">("not-loaded")
+  const [modelLoadingStatus, setModelLoadingStatus] = useState<"not-loaded" | "mobile-confirm" | "loading" | "loaded">(
+    "not-loaded",
+  )
 
   function selectRandomFile(): string {
     if (!filesState.value) {
@@ -54,28 +57,34 @@ function App() {
     return selectedFile
   }
 
-  async function triggerDeepFakeAnalysis(newImgData: { img: Jimp; fileName: string }) {
-    if (modelLoadStatus === "not-loaded") {
-      setModelLoadStatus("loading")
-      await myOnnxSession.loadModel(dataDir + "/model/cnndetection.onnx")
-      // trigger dummy analysis to load the model in memory
-      const inputs = [
-        new Tensor(
-          Array.from({ length: centerCropSize * centerCropSize * 3 }, (_, i) => 0),
-          "float32",
-          [1, 3, centerCropSize, centerCropSize],
-        ),
-      ]
-      await myOnnxSession.run(inputs)
-      setModelLoadStatus("loaded")
+  async function doDeepFakeAnalysis() {
+    if (img === null) {
+      throw new Error("No image loaded")
     }
-
-    setImg(newImgData)
-    setFakeProb(null)
     setTimeout(async () => {
-      const prob = await isItADeepFake(newImgData.img)
+      const prob = await isThisADeepFake(img.img)
       setFakeProb(prob)
     }, 250)
+  }
+
+  async function triggerDeepFakeAnalysis() {
+    if (modelLoadingStatus === "not-loaded") {
+      if (isMobileDevice()) {
+        setModelLoadingStatus("mobile-confirm")
+      } else {
+        setModelLoadingStatus("loading")
+        await downloadAndWarmupOnnxModel()
+        setModelLoadingStatus("loaded")
+        doDeepFakeAnalysis()
+      }
+    } else if (modelLoadingStatus === "mobile-confirm") {
+      setModelLoadingStatus("loading")
+      await downloadAndWarmupOnnxModel()
+      setModelLoadingStatus("loaded")
+      doDeepFakeAnalysis()
+    } else if (modelLoadingStatus === "loaded") {
+      doDeepFakeAnalysis()
+    }
   }
 
   return (
@@ -95,7 +104,7 @@ function App() {
               </>
             )}
           </div>
-          {modelLoadStatus === "loading" ? (
+          {modelLoadingStatus === "loading" ? (
             <div>
               Loading neural network model <Loader />
             </div>
@@ -118,7 +127,9 @@ function App() {
                   onClick={async () => {
                     const selectedFile = selectRandomFile()
                     const newImgData = await fetchImgData(selectedFile)
-                    await triggerDeepFakeAnalysis(newImgData)
+                    setImg(newImgData)
+                    setFakeProb(null)
+                    await triggerDeepFakeAnalysis()
                   }}
                 >
                   Random Image
@@ -148,7 +159,9 @@ function App() {
                       }
 
                       const newImg = await Jimp.read(arb)
-                      await triggerDeepFakeAnalysis({ img: newImg, fileName: "user image" })
+                      setImg({ img: newImg, fileName: "user image" })
+                      setFakeProb(null)
+                      await triggerDeepFakeAnalysis()
                     }
 
                     // Read in the image file as a file buffer
@@ -180,16 +193,53 @@ function App() {
           )}
         </div>
       </div>
+      <AppModal
+        small={true}
+        open={modelLoadingStatus === "mobile-confirm"}
+        title={
+          <Typography variant="h5" component="div">
+            Downloading large model file: {modelFileSize}
+          </Typography>
+        }
+        onClose={() => setModelLoadingStatus("not-loaded")}
+      >
+        <div>
+          <Typography component="div">
+            We detected that you use a mobile device. Before proceeding, we need to download the neural network model
+            file. It's a large file and downloading it over the network may be{" "}
+            <strong>slow and may incur charges</strong> by your mobile network provider.
+          </Typography>
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              marginTop: "1em",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <Button color="secondary" variant="outlined" onClick={() => setModelLoadingStatus("not-loaded")}>
+              Cancel
+            </Button>
+            <Button
+              style={{ marginLeft: "1em" }}
+              color="primary"
+              variant="contained"
+              onClick={async () => {
+                await triggerDeepFakeAnalysis()
+              }}
+            >
+              Continue
+            </Button>
+          </div>
+        </div>
+      </AppModal>
       <div style={{ padding: "3em" }}>
-        <div>TODO: alert mobile user about the large model file download. </div>
         <div>TODO: add a model file download progress bar. </div>
         <div>TODO: better random image display style. </div>
         <div>TODO: better fake probability display style. </div>
         <div>TODO: test browser compatibility. </div>
-        <div>
-          TODO: fix safari bug: Unhandled Promise Rejection: TypeError: TypedArray.from requires its this argument
-          subclass a TypedArray constructor
-        </div>
+        <div>TODO: fix safari bug: analysis never finishes</div>
         <div>
           TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
           processing, etc.

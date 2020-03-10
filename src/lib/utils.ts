@@ -2,7 +2,7 @@ import Jimp from "jimp"
 import { centerCropSize, myOnnxSession, dataDir } from "./options"
 import { Tensor } from "onnxjs"
 
-export async function isItADeepFake(img: Jimp): Promise<number> {
+export async function isThisADeepFake(img: Jimp): Promise<number> {
   // first, CenterCrop(224)
   const ow = img.getWidth()
   const oh = img.getHeight()
@@ -60,4 +60,12 @@ export function isReal(fileName: string) {
 export async function fetchImgData(fileName: string): Promise<{ img: Jimp; fileName: string }> {
   const img = await Jimp.read(dataDir + "/CNN_synth_testset/" + fileName)
   return { img, fileName }
+}
+
+export async function downloadAndWarmupOnnxModel() {
+  await myOnnxSession.loadModel(dataDir + "/model/cnndetection.onnx")
+  // trigger dummy analysis to load the model in memory
+  const fakeData = new Float32Array(centerCropSize * centerCropSize * 3)
+  const inputs = [new Tensor(fakeData, "float32", [1, 3, centerCropSize, centerCropSize])]
+  await myOnnxSession.run(inputs)
 }
