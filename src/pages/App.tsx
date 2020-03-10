@@ -235,7 +235,6 @@ function App() {
         </div>
       </AppModal>
       <div style={{ padding: "3em" }}>
-        <div>TODO: add a model file download progress bar. </div>
         <div>TODO: better random image display style. </div>
         <div>TODO: better fake probability display style. </div>
         <div>TODO: test browser compatibility. </div>
@@ -244,12 +243,15 @@ function App() {
           TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
           processing, etc.
         </div>
+        <div>TODO: metadata social network sharing</div>
+
+        <div>Nice to have:</div>
+        <div>TODO: random image url partageables</div>
+        <div>TODO: add a model file download progress bar. </div>
         <div>
           TODO: add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake,
           the model tells us that it is not, add a "send feedback" button
         </div>
-        <div>TODO: random image url partageables</div>
-        <div>TODO: metadata social network sharing</div>
         <Credits />
         <HowItWorks />
       </div>
