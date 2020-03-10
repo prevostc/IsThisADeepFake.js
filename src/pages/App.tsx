@@ -188,6 +188,10 @@ function App() {
         <div>TODO: better fake probability display style. </div>
         <div>TODO: test browser compatibility. </div>
         <div>
+          TODO: fix safari bug: Unhandled Promise Rejection: TypeError: TypedArray.from requires its this argument
+          subclass a TypedArray constructor
+        </div>
+        <div>
           TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
           processing, etc.
         </div>
@@ -195,6 +199,8 @@ function App() {
           TODO: add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake,
           the model tells us that it is not, add a "send feedback" button
         </div>
+        <div>TODO: random image url partageables</div>
+        <div>TODO: metadata social network sharing</div>
         <Credits />
         <HowItWorks />
       </div>
