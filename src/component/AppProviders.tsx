@@ -8,11 +8,6 @@ import { createMuiTheme } from "@material-ui/core"
 const theme = createMuiTheme({
   spacing: 8,
 
-  typography: {
-    // In Chinese and Japanese the characters are usually larger,
-    // so a smaller fontsize may be appropriate.
-    fontSize: 12,
-  },
   palette: {
     primary: {
       main: "#D5DFE5",
@@ -80,6 +75,11 @@ const theme = createMuiTheme({
     MuiSnackbarContent: {
       root: {
         backgroundColor: "transparent",
+      },
+    },
+    MuiFormControl: {
+      root: {
+        zIndex: "initial",
       },
     },
   },

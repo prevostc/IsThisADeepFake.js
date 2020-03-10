@@ -3,6 +3,7 @@ import Jimp from "jimp"
 
 export interface ImgCanvasProps {
   img: Jimp
+  maxWH: number
 }
 
 export class ImgCanvas extends PureComponent<ImgCanvasProps> {
@@ -23,20 +24,25 @@ export class ImgCanvas extends PureComponent<ImgCanvasProps> {
   protected applyProps() {
     const canvas = this.canvasRef.current
     if (!canvas) {
-      console.error("Canvas ref not defined")
-      return
+      throw new Error("Canvas ref not defined")
     }
     const ctx = canvas.getContext("2d")
     if (!ctx) {
-      console.error("Could not fet canvas 2d context")
-      return
+      throw new Error("Could not fet canvas 2d context")
     }
-    const w = this.props.img.getWidth()
-    const h = this.props.img.getHeight()
-    canvas.width = w
-    canvas.height = h
+    const ow = this.props.img.getWidth()
+    const oh = this.props.img.getHeight()
 
-    ctx.putImageData(new ImageData(new Uint8ClampedArray(this.props.img.bitmap.data), w, h), 0, 0)
+    // scale the image to fit max WH
+    const scaleFactor = Math.max(ow / this.props.maxWH, oh / this.props.maxWH)
+    const sw = Math.floor(ow / scaleFactor)
+    const sh = Math.floor(oh / scaleFactor)
+    const image = this.props.img.resize(sw, sh)
+
+    canvas.width = sw
+    canvas.height = sh
+
+    ctx.putImageData(new ImageData(new Uint8ClampedArray(image.bitmap.data), sw, sh), 0, 0)
   }
 
   public render() {

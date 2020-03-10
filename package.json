@@ -30,8 +30,8 @@
     "start": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "build": "react-scripts build",
-    "start:dev": "PORT=3000 react-scripts start",
+    "build": "REACT_APP_DATA_DIRECTORY='/data' react-scripts build",
+    "start:dev": "REACT_APP_DATA_DIRECTORY='/data_dev' PORT=3000 react-scripts start",
     "start:prod": "serve -s build -l tcp://$HOST:$PORT",
     "lint": "npm run lint:prettier && npm run lint:tslint",
     "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
@@ -40,9 +40,16 @@
     "lint:tslint": "tslint -c tslint.json --project tsconfig.json $(./bin/select_all_ts_files.sh)",
     "lint:tslint:fix": "tslint -c tslint.json --project tsconfig.json $(./bin/select_all_ts_files.sh) --fix",
     "test:precommit": "npm run lint:fix && npm run test:typescript",
-    "deploy:data": "aws s3 cp --region eu-west-3 --recursive --cache-control 'immutable' --acl 'public-read' --content-encoding 'gzip' './public/data' 's3://isthisadeepfake.com/data'",
+    "test:all": "npm run lint && npm run test:typescript && npm run test:unit",
+    "test:typescript": "tsc --noEmit --project tsconfig.json",
+    "test:unusedvars": "tsc --noEmit --noUnusedLocals --noUnusedParameters --project tsconfig.json",
+    "test:unusedvars:watch": "tsc --noEmit -w --noUnusedLocals --noUnusedParameters --project tsconfig.json",
+    "test:typescript:watch": "tsc --noEmit -w --project tsconfig.json",
+    "test:outdated": "./bin/check_dependencies.sh",
+    "test:outdated:fix": "./bin/update_all_dependencies.sh",
+    "deploy:data": "s3-deploy './data/**' --cwd './' --region eu-west-3 --bucket isthisadeepfake.com --gzip --immutable",
     "deploy:code": "s3-deploy './build/**' --cwd './build/' --region eu-west-3 --bucket isthisadeepfake.com --gzip --etag",
-    "deploy": "npm run build && npm run deploy:code"
+    "deploy": "npm run build && rm -Rf ./build/data_dev && npm run deploy:code"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -62,6 +69,7 @@
   "devDependencies": {
     "prettier": "^1.19.1",
     "s3-deploy": "^1.4.0",
+    "serve": "^11.3.0",
     "tslint": "^6.0.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-etc": "^1.10.1"

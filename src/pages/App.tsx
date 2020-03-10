@@ -17,14 +17,14 @@ import {
   ExpansionPanel,
   ExpansionPanelSummary,
   Typography,
-  FormControl,
   ExpansionPanelDetails,
   InputLabel,
 } from "@material-ui/core"
 
 const centerCropSize = 224
-//const dataDir = "/data_dev"
-const dataDir = "/data"
+const dataDir = process.env.REACT_APP_DATA_DIRECTORY || "/data_dev"
+
+// const dataDir = "/data"
 function isFake(fileName: string) {
   return fileName.indexOf("1_fake") !== -1
 }
@@ -97,24 +97,144 @@ async function isItADeepFake(img: Jimp): Promise<number> {
 
 const randomModeOptions: { value: "all" | "fake-only" | "real-only"; label: string }[] = [
   {
-    label: "Any image",
+    label: "Fake or real images",
     value: "all",
   },
   { label: "Only fakes images", value: "fake-only" },
   { label: "Only real images", value: "real-only" },
 ]
 
+const modelOptions: (
+  | { value: "all"; label: string }
+  | {
+      value: string
+      label: string
+      authors: string
+      paper?: string
+      paperUrl: string
+      date: string
+    }
+)[] = [
+  {
+    value: "all",
+    label: "From any deepfake model",
+  },
+  {
+    value: "biggan",
+    label: "BigGAN",
+    paper: "Large Scale GAN Training for High Fidelity Natural Image Synthesis",
+    authors: "Andrew Brock, Jeff Donahue, Karen Simonyan",
+    paperUrl: "https://arxiv.org/abs/1809.11096",
+    date: "Submitted on 28 Sep 2018 (v1), last revised 25 Feb 2019 (this version, v2)",
+  },
+  {
+    value: "deepfake",
+    label: "Deep Fake",
+    paper: "FaceForensics++: Learning to Detect Manipulated Facial Images",
+    authors: "Andreas Rössler, Davide Cozzolino, Luisa Verdoliva, Christian Riess, Justus Thies, Matthias Nießner",
+    paperUrl: "https://arxiv.org/abs/1901.08971",
+    date: "Submitted on 25 Jan 2019 (v1), last revised 26 Aug 2019 (this version, v3)",
+  },
+  {
+    value: "progan",
+    label: "ProGAN",
+    paper: "Progressive Growing of GANs for Improved Quality, Stability, and Variation",
+    authors: "Tero Karras, Timo Aila, Samuli Laine, Jaakko Lehtinen",
+    paperUrl: "https://arxiv.org/abs/1710.10196",
+    date: "Submitted on 27 Oct 2017 (v1), last revised 26 Feb 2018 (this version, v3)",
+  },
+  {
+    value: "stargan",
+    label: "StarGAN",
+    paper: "StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation",
+    authors: "Yunjey Choi, Minje Choi, Munyoung Kim, Jung-Woo Ha, Sunghun Kim, Jaegul Choo",
+    paperUrl: "https://arxiv.org/abs/1711.09020",
+    date: "Submitted on 24 Nov 2017 (v1), last revised 21 Sep 2018 (this version, v3)",
+  },
+  {
+    value: "whichfaceisreal",
+    label: "Which Face Is Real",
+    authors: "Jevin West, Carl Bergstrom ",
+    paperUrl: "http://www.whichfaceisreal.com",
+    date: "2019",
+  },
+  {
+    value: "crn",
+    label: "CRN",
+    paper: "Photographic Image Synthesis with Cascaded Refinement Networks",
+    authors: "Qifeng Chen, Vladlen Koltun",
+    paperUrl: "https://arxiv.org/abs/1707.09405",
+    date: "Submitted on 28 Jul 2017",
+  },
+  {
+    value: "gaugan",
+    label: "GauGAN",
+    paper: "Semantic Image Synthesis with Spatially-Adaptive Normalization",
+    authors: "Taesung Park, Ming-Yu Liu, Ting-Chun Wang, Jun-Yan Zhu",
+    paperUrl: "https://arxiv.org/abs/1903.07291",
+    date: "Submitted on 18 Mar 2019 (v1), last revised 5 Nov 2019 (this version, v2)",
+  },
+  {
+    value: "san",
+    label: "SAN",
+    paper: "Second-order Attention Network for Single Image Super-Resolution",
+    authors: "Tao Dai, Jianrui Cai, Yongbing Zhang, Shu-Tao Xia, Lei Zhang",
+    paperUrl: "https://www4.comp.polyu.edu.hk/~cslzhang/paper/CVPR19-SAN.pdf",
+    date: "CVPR 2019",
+  },
+  {
+    value: "cyclegan",
+    label: "CycleGAN",
+    paper: "Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks",
+    authors: "Jun-Yan Zhu, Taesung Park, Phillip Isola, Alexei A. Efros",
+    paperUrl: "https://arxiv.org/abs/1703.10593",
+    date: "Submitted on 30 Mar 2017 (v1), last revised 15 Nov 2018 (this version, v6)",
+  },
+  {
+    value: "imle",
+    label: "IMLE",
+    paper: "Diverse Image Synthesis from Semantic Layouts via Conditional IMLE",
+    authors: "Ke Li, Tianhao Zhang, Jitendra Malik",
+    paperUrl: "https://arxiv.org/abs/1811.12373",
+    date: "Submitted on 29 Nov 2018 (v1), last revised 29 Aug 2019 (this version, v2)",
+  },
+  {
+    value: "seeingdark",
+    label: "Seeing Dark (SIDT)",
+    paper: "Learning to See in the Dark",
+    authors: "Chen Chen, Qifeng Chen, Jia Xu, Vladlen Koltun",
+    paperUrl: "https://arxiv.org/abs/1805.01934",
+    date: "Submitted on 4 May 2018",
+  },
+  {
+    value: "stylegan",
+    label: "StyleGAN 1",
+    paper: "A Style-Based Generator Architecture for Generative Adversarial Networks",
+    authors: "Tero Karras, Samuli Laine, Timo Aila",
+    paperUrl: "https://arxiv.org/abs/1812.04948",
+    date: "Submitted on 12 Dec 2018 (v1), last revised 29 Mar 2019 (this version, v3)",
+  },
+  {
+    value: "stylegan2",
+    label: "StyleGAN 2",
+    paper: "Analyzing and Improving the Image Quality of StyleGAN",
+    authors: "Tero Karras, Samuli Laine, Miika Aittala, Janne Hellsten, Jaakko Lehtinen, Timo Aila",
+    paperUrl: "https://arxiv.org/abs/1912.04958",
+    date: "Submitted on 3 Dec 2019",
+  },
+]
+
 function App() {
-  const filesState = useAsync<{ models: string[]; files: string[] }>(async () => {
-    const response = await fetch(dataDir + "/file_list.txt")
+  const filesState = useAsync<{ files: string[] }>(async () => {
+    const response = await fetch(dataDir + "/file_list.json")
     if (!response.ok) {
       throw new Error("Could not fetch image list")
     }
-    const files = (await response.text()).split("\n")
-    const models = lodash.uniq(files.map(fileName => fileName.split("/")[0]))
-    return { files, models }
+    const files = (await response.json()) as string[]
+
+    return { files }
   })
-  const [selectedModel, setSelectedModel] = useState<string | null>(null)
+  const [selectedModel, setSelectedModel] = useState<string>("all")
   const [selectedRandomMode, setSelectedRandomMode] = useState<"all" | "fake-only" | "real-only">("all")
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [img, setImg] = useState<{ img: Jimp; fileName: string } | null>(null)
@@ -126,7 +246,7 @@ function App() {
       throw new Error("Still loading data")
     }
     let availableFiles = filesState.value.files
-    if (selectedModel) {
+    if (selectedModel !== "all") {
       availableFiles = availableFiles.filter(file => file.startsWith(selectedModel))
     }
     if (selectedRandomMode === "fake-only") {
@@ -170,17 +290,23 @@ function App() {
     <AppProviders>
       <div className={css.content}>
         <div className={css.header}>
-          <Typography variant="h1">IsThisADeepFake.js</Typography>
-          <Typography variant="h2">Deep fake detection in the browser</Typography>
+          <Typography variant="h3" component="h1">
+            IsThisADeepFake.js
+          </Typography>
+          <Typography variant="h4" component="h2">
+            Deep fake detection in the browser
+          </Typography>
         </div>
         <div className={css.try}>
-          <Typography variant="h3">Try it yourself</Typography>
+          <Typography variant="h5" component="h3">
+            Try it yourself
+          </Typography>
 
           <div>
             {img && (
               <>
                 <span>{img.fileName}</span>
-                <ImgCanvas img={img.img} />
+                <ImgCanvas img={img.img} maxWH={400} />
               </>
             )}
           </div>
@@ -264,27 +390,32 @@ function App() {
                   <Typography>Advanced options</Typography>
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails>
-                  <FormControl>
-                    <InputLabel>Random Image Mode</InputLabel>
-                    <ListSelect
-                      value={randomModeOptions.find(r => r.value === selectedRandomMode)}
-                      items={randomModeOptions}
-                      onSelect={r => setSelectedRandomMode(r.value)}
-                      getLabel={r => r.label}
-                      getValue={r => r.value}
-                    />
-                    <FormHelperText>Use this to use a random image from any open source deep fake model</FormHelperText>
-                  </FormControl>
-                  <FormControl>
-                    <InputLabel>Deep Fake Model</InputLabel>
-                    <ListSelect
-                      placeholder="From any deepfake model"
-                      value={selectedModel}
-                      items={filesState.value.models}
-                      onSelect={setSelectedModel}
-                    />
-                    <FormHelperText>Use this to use a random image from any open source deep fake model</FormHelperText>
-                  </FormControl>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div style={{ marginBottom: "1em" }}>
+                      <InputLabel>Random Image Mode</InputLabel>
+                      <ListSelect
+                        value={randomModeOptions.find(r => r.value === selectedRandomMode)}
+                        items={randomModeOptions}
+                        onSelect={r => setSelectedRandomMode(r.value)}
+                        getLabel={r => r.label}
+                        getValue={r => r.value}
+                      />
+                      <FormHelperText>Select which kind of image you want from the random generator</FormHelperText>
+                    </div>
+                    <div>
+                      <InputLabel>Deep Fake Model</InputLabel>
+                      <ListSelect
+                        value={modelOptions.find(mo => mo.value === selectedModel)}
+                        items={modelOptions}
+                        onSelect={mo => setSelectedModel(mo.value)}
+                        getLabel={r => r.label}
+                        getValue={r => r.value}
+                      />
+                      <FormHelperText>
+                        Use this to only use a specific deep fake model on the random generator
+                      </FormHelperText>
+                    </div>
+                  </div>
                 </ExpansionPanelDetails>
               </ExpansionPanel>
             </div>
