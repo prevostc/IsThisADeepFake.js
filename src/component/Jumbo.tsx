@@ -20,9 +20,9 @@ const ResponsiveTypography: typeof MuiTypography = (withStyles(theme => ({
 const useStyles = makeStyles(theme => ({
   header: {
     textAlign: "center",
-    minHeight: "50vh",
+    minHeight: "30vh",
     [theme.breakpoints.down("sm")]: {
-      minHeight: "30vh",
+      minHeight: "25vh",
     },
     display: "flex",
     flexDirection: "column",

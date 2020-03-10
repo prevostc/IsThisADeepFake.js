@@ -30,7 +30,8 @@ function App() {
   })
   const [selectedModel, setSelectedModel] = useState<ImageModel | "all">("all")
   const [selectedRandomMode, setSelectedRandomMode] = useState<RandomModes>("all")
-  const [img, setImg] = useState<{ img: Jimp; fileName: string } | null>(null)
+  const [img, setImg] = useState<Jimp | null>(null)
+  const [imgCategory, setImgCategory] = useState<"real" | "fake" | null>(null)
   const [fakeProb, setFakeProb] = useState<number | null>(null)
   const [modelLoadingStatus, setModelLoadingStatus] = useState<"not-loaded" | "mobile-confirm" | "loading" | "loaded">(
     "not-loaded",
@@ -57,17 +58,17 @@ function App() {
     return selectedFile
   }
 
-  async function doDeepFakeAnalysis() {
-    if (img === null) {
-      throw new Error("No image loaded")
-    }
+  async function doDeepFakeAnalysis(newImg: Jimp) {
     setTimeout(async () => {
-      const prob = await isThisADeepFake(img.img)
+      const prob = await isThisADeepFake(newImg)
       setFakeProb(prob)
     }, 250)
   }
 
-  async function triggerDeepFakeAnalysis() {
+  async function triggerDeepFakeAnalysis(newImg: Jimp) {
+    setImg(newImg)
+    setFakeProb(null)
+
     if (modelLoadingStatus === "not-loaded") {
       if (isMobileDevice()) {
         setModelLoadingStatus("mobile-confirm")
@@ -75,122 +76,134 @@ function App() {
         setModelLoadingStatus("loading")
         await downloadAndWarmupOnnxModel()
         setModelLoadingStatus("loaded")
-        doDeepFakeAnalysis()
+        doDeepFakeAnalysis(newImg)
       }
     } else if (modelLoadingStatus === "mobile-confirm") {
       setModelLoadingStatus("loading")
       await downloadAndWarmupOnnxModel()
       setModelLoadingStatus("loaded")
-      doDeepFakeAnalysis()
+      doDeepFakeAnalysis(newImg)
     } else if (modelLoadingStatus === "loaded") {
-      doDeepFakeAnalysis()
+      doDeepFakeAnalysis(newImg)
     }
   }
+
+  const disabled = !filesState.value || (fakeProb === null && img !== null) || modelLoadingStatus === "loading"
 
   return (
     <AppProviders>
       <div className={css.content}>
         <Jumbo />
         <div className={css.try} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography variant="h5" component="h3">
-            Try it yourself
-          </Typography>
-
-          <div>
-            {img && (
-              <>
-                <span>{img.fileName}</span>
-                <ImgCanvas img={img.img} maxWH={400} />
-              </>
-            )}
-          </div>
+          {modelLoadingStatus === "not-loaded" && (
+            <Typography variant="h5" component="h3">
+              Try it yourself
+            </Typography>
+          )}
           {modelLoadingStatus === "loading" ? (
-            <div>
-              Loading neural network model <Loader />
-            </div>
+            <Typography variant="h5" component="h3" style={{ display: "flex", alignItems: "center" }}>
+              <span style={{ marginRight: "1em" }}>Loading neural network model</span> <Loader />
+            </Typography>
           ) : (
             img && (
-              <div>
-                Deep Fake Probability:
-                {fakeProb !== null ? Math.round(fakeProb * 100).toString() : <Loader />}%
-              </div>
+              <>
+                <Typography variant="h5" component="h3" style={{ display: "flex", alignItems: "baseline" }}>
+                  <span style={{ marginRight: "0.5em" }}>Analysis:</span>
+                  {fakeProb !== null ? (
+                    <>
+                      <span style={{ marginRight: "0.5em" }}>{fakeProb <= 0.5 ? "REAL" : "FAKE"}</span>
+                      <span style={{ fontSize: "0.5em" }}>({Math.round(fakeProb * 100).toString()}% fake)</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ width: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Loader />
+                      </span>
+                      <span style={{ marginLeft: "2em", fontSize: "0.5em", marginRight: "1em" }}>(processing)</span>
+                    </>
+                  )}
+                </Typography>
+                {imgCategory && (
+                  <Typography variant="h5" component="h3" style={{ display: "flex", alignItems: "center" }}>
+                    <span>This image is in fact: {imgCategory === "fake" ? "FAKE" : "REAL"}</span>
+                  </Typography>
+                )}
+              </>
             )
           )}
           {filesState.loading && <Loader />}
-          {filesState.value && (
-            <div style={{ maxWidth: "300px", margin: "auto" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1em" }}>
-                <Button
-                  color="primary"
-                  variant="contained"
-                  disabled={fakeProb === null && img !== null}
-                  onClick={async () => {
-                    const selectedFile = selectRandomFile()
-                    const newImgData = await fetchImgData(selectedFile)
-                    setImg(newImgData)
-                    setFakeProb(null)
-                    await triggerDeepFakeAnalysis()
-                  }}
-                >
-                  Random Image
-                </Button>
-
-                <Input
-                  disabled={fakeProb === null && img !== null}
-                  style={{ display: "none" }}
-                  id="raised-button-file"
-                  type="file"
-                  inputProps={{
-                    multiple: false,
-                    // accept Jimp compatible formats
-                    accept: "image/png|image/jpeg|image/bmp|image/tiff|image/gif",
-                  }}
-                  onChange={async evt => {
-                    // @ts-ignore
-                    const inputFile = evt.target.files.length > 0 ? evt.target.files[0] : null
-
-                    const reader = new FileReader()
-
-                    // Closure to capture the file information.
-                    reader.onload = async readEvt => {
-                      const arb = readEvt?.target?.result as Buffer | null | undefined
-                      if (!arb) {
-                        throw new Error("Cannot read file")
-                      }
-
-                      const newImg = await Jimp.read(arb)
-                      setImg({ img: newImg, fileName: "user image" })
-                      setFakeProb(null)
-                      await triggerDeepFakeAnalysis()
-                    }
-
-                    // Read in the image file as a file buffer
-                    reader.readAsArrayBuffer(inputFile)
-                  }}
-                />
-                <label htmlFor="raised-button-file">
-                  <Button
-                    disabled={fakeProb === null && img !== null}
-                    color="primary"
-                    variant="contained"
-                    component="span"
-                  >
-                    Use your own
-                  </Button>
-                </label>
-              </div>
-              <OptionsPanel
-                disabled={fakeProb === null && img !== null}
-                selectedModel={selectedModel}
-                setSelectedModel={setSelectedModel}
-                selectedRandomMode={selectedRandomMode}
-                setSelectedRandomMode={setSelectedRandomMode}
-              />
-            </div>
-          )}
           {filesState.error && (
             <AppSnackbar message="Could not fetch image list" variant="error" onClose={() => {}} open={true} />
           )}
+
+          <div style={{ marginTop: "1em", marginBottom: "1em" }}>
+            <ImgCanvas
+              img={modelLoadingStatus === "loaded" && img ? img : null}
+              maxWH={modelLoadingStatus === "loaded" && img ? 350 : 300}
+            />
+          </div>
+          <div style={{ maxWidth: "350px", margin: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1em" }}>
+              <Button
+                color="primary"
+                variant="contained"
+                disabled={disabled}
+                onClick={async () => {
+                  const selectedFile = selectRandomFile()
+                  const { img: newImgData, fileName } = await fetchImgData(selectedFile)
+                  setImgCategory(isReal(fileName) ? "real" : "fake")
+                  await triggerDeepFakeAnalysis(newImgData)
+                }}
+              >
+                Random Image
+              </Button>
+
+              <Input
+                disabled={disabled}
+                style={{ display: "none" }}
+                id="raised-button-file"
+                type="file"
+                inputProps={{
+                  multiple: false,
+                  // accept Jimp compatible formats
+                  accept: "image/png|image/jpeg|image/bmp|image/tiff|image/gif",
+                }}
+                onChange={async evt => {
+                  // @ts-ignore
+                  const inputFile = evt.target.files.length > 0 ? evt.target.files[0] : null
+
+                  const reader = new FileReader()
+
+                  // Closure to capture the file information.
+                  reader.onload = async readEvt => {
+                    const arb = readEvt?.target?.result as Buffer | null | undefined
+                    if (!arb) {
+                      throw new Error("Cannot read file")
+                    }
+
+                    const newImg = await Jimp.read(arb)
+                    setImgCategory(null)
+                    await triggerDeepFakeAnalysis(newImg)
+                  }
+
+                  // Read in the image file as a file buffer
+                  reader.readAsArrayBuffer(inputFile)
+                }}
+              />
+              <label htmlFor="raised-button-file">
+                <Button disabled={disabled} color="primary" variant="contained" component="span">
+                  Use your own
+                </Button>
+              </label>
+            </div>
+            <OptionsPanel
+              disabled={disabled}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              selectedRandomMode={selectedRandomMode}
+              setSelectedRandomMode={setSelectedRandomMode}
+            />
+          </div>
         </div>
       </div>
       <AppModal
@@ -226,7 +239,10 @@ function App() {
               color="primary"
               variant="contained"
               onClick={async () => {
-                await triggerDeepFakeAnalysis()
+                if (!img) {
+                  throw new Error("No img data")
+                }
+                await triggerDeepFakeAnalysis(img)
               }}
             >
               Continue
@@ -235,13 +251,9 @@ function App() {
         </div>
       </AppModal>
       <div style={{ padding: "3em" }}>
-        <div>TODO: better random image display style. </div>
-        <div>TODO: better fake probability display style. </div>
+        <div>TODO: placeholder action</div>
         <div>TODO: credits </div>
         <div>TODO: how it works </div>
-        <div>TODO: change onnx backend (GPU/CPU) </div>
-        <div>TODO: test browser compatibility. </div>
-        <div>TODO: fix safari bug: analysis never finishes</div>
         <div>
           TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
           processing, etc.
@@ -249,6 +261,8 @@ function App() {
         <div>TODO: metadata social network sharing</div>
 
         <div>Nice to have:</div>
+        <div>TODO: test browser compatibility. </div>
+        <div>TODO: change onnx backend (GPU/CPU) </div>
         <div>TODO: random image url partageables</div>
         <div>TODO: add a model file download progress bar. </div>
         <div>

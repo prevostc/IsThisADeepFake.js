@@ -1,0 +1,1 @@
+https://www.flaticon.com/free-icon/yes-or-no_2689652?term=yes%20or%20no&page=1&position=26
