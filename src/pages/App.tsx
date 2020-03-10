@@ -181,7 +181,6 @@ function App() {
         </div>
       </div>
       <div style={{ padding: "3em" }}>
-        <div>TODO: have a nice favicon </div>
         <div>TODO: alert mobile user about the large model file download. </div>
         <div>TODO: add a model file download progress bar. </div>
         <div>TODO: better random image display style. </div>
