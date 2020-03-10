@@ -14,6 +14,8 @@ import { dataDir, myOnnxSession, centerCropSize } from "../lib/options"
 import { OptionsPanel, RandomModes, ImageModel } from "../component/OptionsPanel"
 import { isItADeepFake, isFake, isReal, fetchImgData } from "../lib/utils"
 import { Jumbo } from "../component/Jumbo"
+import { Credits } from "../component/Credits"
+import { HowItWorks } from "../component/HowItWorks"
 
 function App() {
   const filesState = useAsync<{ files: string[] }>(async () => {
@@ -177,6 +179,16 @@ function App() {
             <AppSnackbar message="Could not fetch image list" variant="error" onClose={() => {}} open={true} />
           )}
         </div>
+      </div>
+      <div style={{ padding: "3em" }}>
+        <div>TODO: have a nice favicon </div>
+        <div>TODO: alert mobile user about the large model file download. </div>
+        <div>TODO: add a model file download progress bar. </div>
+        <div>TODO: better random image display style. </div>
+        <div>TODO: better fake probability display style. </div>
+        <div>TODO: test browser compatibility. </div>
+        <Credits />
+        <HowItWorks />
       </div>
       <Footer />
     </AppProviders>
