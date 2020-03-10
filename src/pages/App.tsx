@@ -237,6 +237,9 @@ function App() {
       <div style={{ padding: "3em" }}>
         <div>TODO: better random image display style. </div>
         <div>TODO: better fake probability display style. </div>
+        <div>TODO: credits </div>
+        <div>TODO: how it works </div>
+        <div>TODO: change onnx backend (GPU/CPU) </div>
         <div>TODO: test browser compatibility. </div>
         <div>TODO: fix safari bug: analysis never finishes</div>
         <div>
