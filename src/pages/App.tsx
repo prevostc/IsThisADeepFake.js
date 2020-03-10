@@ -187,6 +187,14 @@ function App() {
         <div>TODO: better random image display style. </div>
         <div>TODO: better fake probability display style. </div>
         <div>TODO: test browser compatibility. </div>
+        <div>
+          TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
+          processing, etc.
+        </div>
+        <div>
+          TODO: add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake,
+          the model tells us that it is not, add a "send feedback" button
+        </div>
         <Credits />
         <HowItWorks />
       </div>
