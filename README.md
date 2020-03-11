@@ -14,7 +14,6 @@ I believe that this kind of technology should be accessible to anyone, free and 
     - random model select, pick high fidelity dataset first
     - Credits: quote the original authors of this paper https://peterwang512.github.io/CNNDetection/
     - how it works: explain that this runs on the browser to respect user privacy, explain the model lmimitations (resize/screenshots/original data)
-    - metadata social network sharing
     - credit authors of all papers in GAN select
     - change onnx backend (GPU/CPU) 
     - random image url partageables
