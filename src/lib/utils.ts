@@ -1,6 +1,7 @@
 import Jimp from "jimp"
 import { centerCropSize, myOnnxSession, dataDir } from "./options"
 import { Tensor } from "onnxjs"
+import { ImageModel } from "../component/OptionsPanel"
 
 export async function isThisADeepFake(img: Jimp): Promise<number> {
   // first, CenterCrop(224)
@@ -55,6 +56,11 @@ export function isFake(fileName: string) {
 }
 export function isReal(fileName: string) {
   return fileName.indexOf("0_real") !== -1
+}
+export function getModelFromFilename(fileName: string): ImageModel {
+  const parts = fileName.split("/")
+  // @todo: check that it's indeed an ImageModel
+  return (parts.length > 0 ? parts[0] : "") as ImageModel
 }
 
 export async function fetchImgData(fileName: string): Promise<{ img: Jimp; fileName: string }> {

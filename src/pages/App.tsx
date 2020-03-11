@@ -11,8 +11,15 @@ import Jimp from "jimp"
 import { Button, Typography, Input, withStyles } from "@material-ui/core"
 import Fade from "@material-ui/core/Fade"
 import { dataDir, modelFileSize } from "../lib/options"
-import { OptionsPanel, RandomModes, ImageModel } from "../component/OptionsPanel"
-import { isThisADeepFake, isFake, isReal, fetchImgData, downloadAndWarmupOnnxModel } from "../lib/utils"
+import { OptionsPanel, RandomModes, ImageModel, getModelLabel } from "../component/OptionsPanel"
+import {
+  isThisADeepFake,
+  isFake,
+  isReal,
+  fetchImgData,
+  downloadAndWarmupOnnxModel,
+  getModelFromFilename,
+} from "../lib/utils"
 import { Jumbo } from "../component/Jumbo"
 import { Credits } from "../component/Credits"
 import { HowItWorks } from "../component/HowItWorks"
@@ -41,7 +48,7 @@ function App() {
   const [selectedModel, setSelectedModel] = useState<ImageModel | "all">("all")
   const [selectedRandomMode, setSelectedRandomMode] = useState<RandomModes>("all")
   const [img, setImg] = useState<Jimp | null>(null)
-  const [imgCategory, setImgCategory] = useState<"real" | "fake" | null>(null)
+  const [imgFilename, setImgFilename] = useState<string | null>(null)
   const [fakeProb, setFakeProb] = useState<number | null>(null)
   const [modelLoadingStatus, setModelLoadingStatus] = useState<"not-loaded" | "mobile-confirm" | "loading" | "loaded">(
     "not-loaded",
@@ -52,9 +59,13 @@ function App() {
       throw new Error("Still loading data")
     }
     let availableFiles = filesState.value.files
+
+    // apply model selection
     if (selectedModel !== "all") {
       availableFiles = availableFiles.filter(file => file.startsWith(selectedModel))
     }
+
+    // apply random mode selection
     if (selectedRandomMode === "fake-only") {
       availableFiles = availableFiles.filter(isFake)
     }
@@ -64,6 +75,16 @@ function App() {
     if (!availableFiles.length) {
       throw new Error("Not a single eligible file :(")
     }
+    // Some models are overrepresented, pick a random model, then fake or real
+    const availableModels = lodash.uniq(availableFiles.map(getModelFromFilename))
+    const sampledModel = lodash.sample(availableModels) as string
+    availableFiles = availableFiles.filter(file => file.startsWith(sampledModel))
+    availableFiles.filter(Math.random() > 0.5 ? isReal : isFake)
+
+    if (!availableFiles.length) {
+      throw new Error("Not a single eligible file :(")
+    }
+    // pick a random file
     const selectedFile = lodash.sample(availableFiles) as string
     return selectedFile
   }
@@ -101,7 +122,7 @@ function App() {
   async function triggerRandomImageAnalysis() {
     const selectedFile = selectRandomFile()
     const { img: newImgData, fileName } = await fetchImgData(selectedFile)
-    setImgCategory(isReal(fileName) ? "real" : "fake")
+    setImgFilename(fileName)
     await triggerDeepFakeAnalysis(newImgData)
   }
 
@@ -165,15 +186,22 @@ function App() {
             </CanvasButton>
           </div>
 
-          {modelLoadingStatus === "loaded" && img && imgCategory && (
+          {modelLoadingStatus === "loaded" && img && imgFilename && (
             <Typography style={{ display: "flex", alignItems: "center", marginBottom: "1em" }}>
               <span style={{ marginRight: "1em" }}>This image is in fact:</span>
-              <span style={{ display: "flex", justifyContent: "center" }}>
+              <span style={{ display: "flex", justifyContent: "center", alignItems: "baseline" }}>
                 <Fade in={true}>
                   <span style={{ width: "3em" }}>
-                    {fakeProb !== null ? (imgCategory === "fake" ? "FAKE" : "REAL") : "????"}
+                    {fakeProb !== null ? (isFake(imgFilename) ? "FAKE" : "REAL") : "????"}
                   </span>
                 </Fade>
+                {imgFilename && (
+                  <Fade in={true}>
+                    <span style={{ fontSize: "0.7em", width: "12em" }}>
+                      {fakeProb !== null && <>({getModelLabel(getModelFromFilename(imgFilename))})</>}
+                    </span>
+                  </Fade>
+                )}
               </span>
             </Typography>
           )}
@@ -207,7 +235,7 @@ function App() {
                     }
 
                     const newImg = await Jimp.read(arb)
-                    setImgCategory(null)
+                    setImgFilename(null)
                     await triggerDeepFakeAnalysis(newImg)
                   }
 

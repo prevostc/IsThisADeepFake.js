@@ -153,6 +153,10 @@ const modelOptions: (
   },
 ]
 
+export function getModelLabel(model: ImageModel): string {
+  return modelOptions.find(mo => mo.value === model)?.label || ""
+}
+
 const ExpansionPanel = withStyles({
   root: {
     borderRadius: "7px",

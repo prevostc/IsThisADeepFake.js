@@ -1,6 +1,7 @@
 # Task List
 
     TODO:
+    - random model select, pick high fidelity dataset first
     - Credits: quote the original authors of this paper https://peterwang512.github.io/CNNDetection/
     - how it works: explain that this runs on the browser to respect user privacy, explain the model lmimitations (resize/screenshots/original data)
     - metadata social network sharing
