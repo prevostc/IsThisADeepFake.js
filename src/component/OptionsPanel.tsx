@@ -208,13 +208,11 @@ const InputLabel = withStyles({
 })(MuiInputLabel)
 
 export function OptionsPanel({
-  disabled,
   selectedRandomMode,
   setSelectedRandomMode,
   selectedModel,
   setSelectedModel,
 }: {
-  disabled: boolean
   selectedRandomMode: RandomModes
   setSelectedRandomMode: (mode: RandomModes) => void
   selectedModel: ImageModel | "all"
@@ -222,7 +220,7 @@ export function OptionsPanel({
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false)
   return (
-    <ExpansionPanel disabled={disabled} expanded={optionsOpen} onChange={() => setOptionsOpen(!optionsOpen)}>
+    <ExpansionPanel expanded={optionsOpen} onChange={() => setOptionsOpen(!optionsOpen)}>
       <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Advanced options</Typography>
       </ExpansionPanelSummary>

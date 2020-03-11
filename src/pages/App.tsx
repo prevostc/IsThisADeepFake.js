@@ -8,7 +8,8 @@ import AppSnackbar from "../component/AppSnackbar"
 import * as lodash from "lodash"
 import { ImgCanvas } from "../component/ImgCanvas"
 import Jimp from "jimp"
-import { Button, Typography, Input } from "@material-ui/core"
+import { Button, Typography, Input, withStyles } from "@material-ui/core"
+import Fade from "@material-ui/core/Fade"
 import { dataDir, modelFileSize } from "../lib/options"
 import { OptionsPanel, RandomModes, ImageModel } from "../component/OptionsPanel"
 import { isThisADeepFake, isFake, isReal, fetchImgData, downloadAndWarmupOnnxModel } from "../lib/utils"
@@ -17,6 +18,15 @@ import { Credits } from "../component/Credits"
 import { HowItWorks } from "../component/HowItWorks"
 import { isMobileDevice } from "../lib/mobile"
 import AppModal from "../component/AppModal"
+
+const CanvasButton: typeof Button = (withStyles(theme => ({
+  root: {
+    transition: "150ms",
+    "&:hover": {
+      filter: "brightness(70%)",
+    },
+  },
+}))(Button) as unknown) as typeof Button
 
 function App() {
   const filesState = useAsync<{ files: string[] }>(async () => {
@@ -76,19 +86,24 @@ function App() {
         setModelLoadingStatus("loading")
         await downloadAndWarmupOnnxModel()
         setModelLoadingStatus("loaded")
-        doDeepFakeAnalysis(newImg)
+        await doDeepFakeAnalysis(newImg)
       }
     } else if (modelLoadingStatus === "mobile-confirm") {
       setModelLoadingStatus("loading")
       await downloadAndWarmupOnnxModel()
       setModelLoadingStatus("loaded")
-      doDeepFakeAnalysis(newImg)
+      await doDeepFakeAnalysis(newImg)
     } else if (modelLoadingStatus === "loaded") {
-      doDeepFakeAnalysis(newImg)
+      await doDeepFakeAnalysis(newImg)
     }
   }
 
-  const disabled = !filesState.value || (fakeProb === null && img !== null) || modelLoadingStatus === "loading"
+  async function triggerRandomImageAnalysis() {
+    const selectedFile = selectRandomFile()
+    const { img: newImgData, fileName } = await fetchImgData(selectedFile)
+    setImgCategory(isReal(fileName) ? "real" : "fake")
+    await triggerDeepFakeAnalysis(newImgData)
+  }
 
   return (
     <AppProviders>
@@ -111,23 +126,28 @@ function App() {
                   <span style={{ marginRight: "0.5em" }}>Analysis:</span>
                   {fakeProb !== null ? (
                     <>
-                      <span style={{ marginRight: "0.5em" }}>{fakeProb <= 0.5 ? "REAL" : "FAKE"}</span>
-                      <span style={{ fontSize: "0.5em" }}>({Math.round(fakeProb * 100).toString()}% fake)</span>
+                      <span style={{ width: "2.5em", marginRight: "0.5em" }}>{fakeProb <= 0.5 ? "REAL" : "FAKE"}</span>
+                      <span style={{ fontSize: "0.7em", width: "5.5em" }}>
+                        ({Math.round(fakeProb * 100).toString()}% fake)
+                      </span>
                     </>
                   ) : (
                     <>
-                      <span style={{ width: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <span
+                        style={{
+                          width: "2.5em",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          marginRight: "0.5em",
+                        }}
+                      >
                         <Loader />
                       </span>
-                      <span style={{ marginLeft: "2em", fontSize: "0.5em", marginRight: "1em" }}>(processing)</span>
+                      <span style={{ fontSize: "0.7em", width: "5.5em" }}>(processing)</span>
                     </>
                   )}
                 </Typography>
-                {imgCategory && (
-                  <Typography variant="h5" component="h3" style={{ display: "flex", alignItems: "center" }}>
-                    <span>This image is in fact: {imgCategory === "fake" ? "FAKE" : "REAL"}</span>
-                  </Typography>
-                )}
               </>
             )
           )}
@@ -137,29 +157,34 @@ function App() {
           )}
 
           <div style={{ marginTop: "1em", marginBottom: "1em" }}>
-            <ImgCanvas
-              img={modelLoadingStatus === "loaded" && img ? img : null}
-              maxWH={modelLoadingStatus === "loaded" && img ? 350 : 300}
-            />
+            <CanvasButton component="div" onClick={triggerRandomImageAnalysis}>
+              <ImgCanvas
+                img={modelLoadingStatus === "loaded" && img ? img : null}
+                maxWH={modelLoadingStatus === "loaded" && img ? 350 : 300}
+              />
+            </CanvasButton>
           </div>
+
+          {modelLoadingStatus === "loaded" && img && imgCategory && (
+            <Typography style={{ display: "flex", alignItems: "center", marginBottom: "1em" }}>
+              <span style={{ marginRight: "1em" }}>This image is in fact:</span>
+              <span style={{ display: "flex", justifyContent: "center" }}>
+                <Fade in={true}>
+                  <span style={{ width: "3em" }}>
+                    {fakeProb !== null ? (imgCategory === "fake" ? "FAKE" : "REAL") : "????"}
+                  </span>
+                </Fade>
+              </span>
+            </Typography>
+          )}
+
           <div style={{ maxWidth: "350px", margin: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1em" }}>
-              <Button
-                color="primary"
-                variant="contained"
-                disabled={disabled}
-                onClick={async () => {
-                  const selectedFile = selectRandomFile()
-                  const { img: newImgData, fileName } = await fetchImgData(selectedFile)
-                  setImgCategory(isReal(fileName) ? "real" : "fake")
-                  await triggerDeepFakeAnalysis(newImgData)
-                }}
-              >
+              <Button color="primary" variant="contained" onClick={triggerRandomImageAnalysis}>
                 Random Image
               </Button>
 
               <Input
-                disabled={disabled}
                 style={{ display: "none" }}
                 id="raised-button-file"
                 type="file"
@@ -191,13 +216,12 @@ function App() {
                 }}
               />
               <label htmlFor="raised-button-file">
-                <Button disabled={disabled} color="primary" variant="contained" component="span">
+                <Button color="primary" variant="contained" component="span">
                   Use your own
                 </Button>
               </label>
             </div>
             <OptionsPanel
-              disabled={disabled}
               selectedModel={selectedModel}
               setSelectedModel={setSelectedModel}
               selectedRandomMode={selectedRandomMode}
@@ -251,7 +275,6 @@ function App() {
         </div>
       </AppModal>
       <div style={{ padding: "3em" }}>
-        <div>TODO: placeholder action</div>
         <div>TODO: credits </div>
         <div>TODO: how it works </div>
         <div>
@@ -269,6 +292,12 @@ function App() {
           TODO: add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake,
           the model tells us that it is not, add a "send feedback" button
         </div>
+        <div>TODO: use tree-shakable mui imports. </div>
+        <div>TODO: tests and build and deploy in CI</div>
+        <div>TODO: refactor APP.js</div>
+        <div>TODO: async component for non-above-the-fold content</div>
+        <div>TODO: use pure components when appropriate</div>
+        <div>TODO: Refactor ugly React code</div>
         <Credits />
         <HowItWorks />
       </div>

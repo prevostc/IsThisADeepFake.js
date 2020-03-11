@@ -1,5 +1,6 @@
 import React, { PureComponent, RefObject } from "react"
 import Jimp from "jimp"
+import Fade from "@material-ui/core/Fade"
 import placeholderImg from "./ImgCanvas-placeholder.svg"
 
 export interface ImgCanvasProps {
@@ -50,16 +51,22 @@ export class ImgCanvas extends PureComponent<ImgCanvasProps> {
 
   public render() {
     if (this.props.img) {
-      return <canvas ref={this.canvasRef} />
+      return (
+        <Fade key={Math.random()} in={true}>
+          <canvas ref={this.canvasRef} />
+        </Fade>
+      )
     } else {
       return (
-        <img
-          style={{ filter: "grayscale(80%) contrast(0.5) brightness(118%)" }}
-          src={placeholderImg}
-          width={this.props.maxWH}
-          height={this.props.maxWH}
-          alt="Result placeholder"
-        />
+        <Fade style={{ width: this.props.maxWH, height: this.props.maxWH }} in={true}>
+          <img
+            style={{ filter: "grayscale(80%) contrast(0.5) brightness(118%)" }}
+            src={placeholderImg}
+            width={this.props.maxWH}
+            height={this.props.maxWH}
+            alt="Result placeholder"
+          />
+        </Fade>
       )
     }
   }
