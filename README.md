@@ -11,12 +11,9 @@ I believe that this kind of technology should be accessible to anyone, free and 
 # Task List
 
     TODO:
-    - random model select, pick high fidelity dataset first
-    - Credits: quote the original authors of this paper https://peterwang512.github.io/CNNDetection/
-    - how it works: explain that this runs on the browser to respect user privacy, explain the model lmimitations (resize/screenshots/original data)
     - credit authors of all papers in GAN select
     - change onnx backend (GPU/CPU) 
-    - random image url partageables
+    - shareable urls
     - add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake, the model tells us that it is not, add a "send feedback" button
     - use tree-shakable mui imports. 
     - tests and build and deploy in CI
@@ -25,6 +22,7 @@ I believe that this kind of technology should be accessible to anyone, free and 
     - use pure components when appropriate
     - Refactor ugly React code
     - Do not use style={{...}}
+    - Use SSR to get a better lighthouse score
 
 # Create React App Documentation
 
