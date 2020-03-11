@@ -274,33 +274,8 @@ function App() {
           </div>
         </div>
       </AppModal>
-      <div style={{ padding: "3em" }}>
-        <div>TODO: credits </div>
-        <div>TODO: how it works </div>
-        <div>
-          TODO: add a caveats section, warning users about the need for original images data, no screenshot, no
-          processing, etc.
-        </div>
-        <div>TODO: metadata social network sharing</div>
-
-        <div>Nice to have:</div>
-        <div>TODO: test browser compatibility. </div>
-        <div>TODO: change onnx backend (GPU/CPU) </div>
-        <div>TODO: random image url partageables</div>
-        <div>TODO: add a model file download progress bar. </div>
-        <div>
-          TODO: add the ability to send us a picture that was wrongfully classified. Ex: i load an image, it's a fake,
-          the model tells us that it is not, add a "send feedback" button
-        </div>
-        <div>TODO: use tree-shakable mui imports. </div>
-        <div>TODO: tests and build and deploy in CI</div>
-        <div>TODO: refactor APP.js</div>
-        <div>TODO: async component for non-above-the-fold content</div>
-        <div>TODO: use pure components when appropriate</div>
-        <div>TODO: Refactor ugly React code</div>
-        <Credits />
-        <HowItWorks />
-      </div>
+      <Credits />
+      <HowItWorks />
       <Footer />
     </AppProviders>
   )
