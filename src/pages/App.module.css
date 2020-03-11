@@ -7,6 +7,8 @@
   background-color: #282c34;
   color: white;
   padding-bottom: 10em;
+  padding-left: 1em;
+  padding-right: 1em;
 }
 .try {
   max-width: 500px;

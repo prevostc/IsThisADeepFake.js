@@ -21,7 +21,6 @@ import {
   getModelFromFilename,
 } from "../lib/utils"
 import { Jumbo } from "../component/Jumbo"
-import { Credits } from "../component/Credits"
 import { HowItWorks } from "../component/HowItWorks"
 import { isMobileDevice } from "../lib/mobile"
 import AppModal from "../component/AppModal"
@@ -147,7 +146,9 @@ function App() {
                   <span style={{ marginRight: "0.5em" }}>Analysis:</span>
                   {fakeProb !== null ? (
                     <>
-                      <span style={{ width: "2.5em", marginRight: "0.5em" }}>{fakeProb <= 0.5 ? "REAL" : "FAKE"}</span>
+                      <span style={{ width: "5em", marginRight: "0.5em", textAlign: "right" }}>
+                        {fakeProb <= 0.5 ? "NOT fake" : "FAKE"}
+                      </span>
                       <span style={{ fontSize: "0.7em", width: "5.5em" }}>
                         ({Math.round(fakeProb * 100).toString()}% fake)
                       </span>
@@ -156,7 +157,7 @@ function App() {
                     <>
                       <span
                         style={{
-                          width: "2.5em",
+                          width: "5em",
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
@@ -179,10 +180,7 @@ function App() {
 
           <div style={{ marginTop: "1em", marginBottom: "1em" }}>
             <CanvasButton component="div" onClick={triggerRandomImageAnalysis}>
-              <ImgCanvas
-                img={modelLoadingStatus === "loaded" && img ? img : null}
-                maxWH={modelLoadingStatus === "loaded" && img ? 350 : 300}
-              />
+              <ImgCanvas img={img ? img : null} maxWH={img ? 350 : 300} />
             </CanvasButton>
           </div>
 
@@ -302,7 +300,6 @@ function App() {
           </div>
         </div>
       </AppModal>
-      <Credits />
       <HowItWorks />
       <Footer />
     </AppProviders>

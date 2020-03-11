@@ -226,7 +226,7 @@ export function OptionsPanel({
   return (
     <ExpansionPanel expanded={optionsOpen} onChange={() => setOptionsOpen(!optionsOpen)}>
       <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Advanced options</Typography>
+        <Typography>Random image options</Typography>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails>
         <div style={{ display: "flex", flexDirection: "column" }}>
