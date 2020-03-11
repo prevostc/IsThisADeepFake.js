@@ -1,3 +1,13 @@
+# About
+
+A website to be able to run a deep fake analysis anonymously.
+
+Based on the original work of https://github.com/peterwang512/CNNDetection
+
+# Motivation 
+
+I believe that this kind of technology should be accessible to anyone, free and respect user privacy.
+
 # Task List
 
     TODO:
@@ -17,6 +27,7 @@
     - Refactor ugly React code
     - Do not use style={{...}}
 
+# Create React App Documentation
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

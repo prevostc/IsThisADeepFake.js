@@ -10,7 +10,19 @@ export function Footer() {
           Titoune
         </a>
       </p>
-      <div style={{ fontSize: "8px" }}>
+      <p style={{ fontSize: "10px", margin: "2px" }}>
+        Source Code:{" "}
+        <a href="https://github.com/prevostc/IsThisADeepFake.js" title="Github link to source code">
+          prevostc/IsThisADeepFake.js
+        </a>
+      </p>
+      <p style={{ fontSize: "10px", margin: "2px" }}>
+        Based on the source code and model of the original paper:{" "}
+        <a href="https://peterwang512.github.io/CNNDetection/" title="Original paper">
+          CNNDetection
+        </a>
+      </p>
+      <p style={{ fontSize: "10px", margin: "2px" }}>
         Icons made by{" "}
         <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">
           Flat Icons
@@ -22,12 +34,6 @@ export function Footer() {
         from{" "}
         <a href="https://www.flaticon.com/" title="Flaticon">
           www.flaticon.com
-        </a>
-      </div>
-      <p style={{ fontSize: "8px" }}>
-        Github:{" "}
-        <a href="https://github.com/prevostc/IsThisADeepFake.js" title="Github link to source code">
-          prevostc/IsThisADeepFake.js
         </a>
       </p>
     </div>
